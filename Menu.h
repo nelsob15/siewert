@@ -2,6 +2,8 @@
 #define MENU_H
 
 #include<iostream>
+#include <sstream>
+#include <string>
 #include "calendar.h"
 #include "Event.h"
 #include "Synch.h"

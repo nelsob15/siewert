@@ -3,6 +3,8 @@
 
 #include<iostream>
 #include<cstring>
+#include <sstream>
+#include <string>
 
 class Settings
 {

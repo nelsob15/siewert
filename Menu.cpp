@@ -30,10 +30,21 @@ void Menu::displayMenu() //displays menu for user input
 	cout << "(p)    -- MENU" << endl;
 	cout << "(exit) -- EXIT" << endl;
 }
+std::string intString(int i)
+{
+
+  std::stringstream ss;
+
+  ss << i;
+
+  return ss.str();
+
+}
 
 void Menu::getInput() //retrieves user input
 {
     string menuInput;
+    std::string default_console = "\033[" + intString(0) + "m";
 
     while(menuInput != "exit")
     {
@@ -232,6 +243,7 @@ void Menu::getInput() //retrieves user input
 
         displayMenu();
     }
+        std::cout << default_console << std::endl;
 }
 
 void Menu::displayEvents(Event *test) ////displays the contents of the current event objects
@@ -254,6 +266,9 @@ void Menu::displaySettings() ////displays settings
     string settingsInput;
     Settings settingsTest;
 
+	//char ** argv;
+
+	
     settingsTest.displayCurrent();
 
     cout << "(cdf)  -- change default view" << endl;
@@ -263,6 +278,7 @@ void Menu::displaySettings() ////displays settings
     cout << "(cm)   -- change month" << endl;
     cout << "(wc)   -- what changes" << endl;
     cout << "(dc)   -- display current " << endl;
+    cout << "(done) -- done with settings" << endl;
 
     cin >> settingsInput;
 
@@ -283,6 +299,7 @@ void Menu::displaySettings() ////displays settings
         }
         else if(settingsInput=="ctc")
         {
+ 
             settingsTest.changeTextColor();
         }
         else if(settingsInput=="cm")
@@ -297,6 +314,10 @@ void Menu::displaySettings() ////displays settings
         {
             settingsTest.displayCurrent();
         }
+        else if(settingsInput=="done")
+        {
+            break;
+        }        
         else
         {
             cout << "Invalid Input" << endl;
