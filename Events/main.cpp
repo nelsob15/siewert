@@ -1,21 +1,18 @@
-/*
-  Calendar Application - Events test
+//
+// SE310 HW3 Domain Model
+//
+// -- prototype for interactive calendar with events
+//
 
-  Creates an events object for testing event features
-*/
-
-#include <iostream>
+#include<iostream>
 #include "Event.h"
-#include <map>
-#include <sstream>
 
 using namespace std;
 
-int main()
+int main()                    //This was to just be able to run your class...
 {
-    Event main; //creates a event object for navigating through events
-
-    main.main_event_menu(); //runs events menu
+    Event temp;
+    temp.MainEventMenu();
 
     return 0;
 }
