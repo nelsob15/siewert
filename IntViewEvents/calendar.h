@@ -19,7 +19,7 @@ private:
 public:
 	Calendar(int =2, int =2017);
 	void setFirstDay();
-	void print(Event **);
+	void print(Event **, int);
 };
 
 #endif // CALENDAR_H

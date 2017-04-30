@@ -18,7 +18,7 @@ void Calendar :: setFirstDay(){
 	firstday= (day + y + y / 4 - y / 100 + y / 400 + (31 * m / 12)) % 7;
 }
 
-void Calendar :: print(Event **head){
+void Calendar :: print(Event **head, int monthToSearch){
 
 	int NumberOfDaysInMonth;
 	int FirstDayOfMonth;
@@ -116,7 +116,7 @@ void Calendar :: print(Event **head){
       if ( *head != NULL ) // Make sure we aren't using an empty list.
       {
         // If the day is found when we compare, change the color of that particular date.
-        if ((traverse != NULL) && (DateCounter == traverse->getDay())) // Make sure traversal is traversable.
+        if ((traverse != NULL) && (monthToSearch == traverse->getMonth()) && (DateCounter == traverse->getDay())) // Make sure traversal is traversable.
         {
           textcolor(BRIGHT, RED, BLACK);
           traverse = traverse->next;

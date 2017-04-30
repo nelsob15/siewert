@@ -8,6 +8,10 @@
 #include "calendar.h"
 #include "Event.h"
 
+#define TESTMODE (0)
+#define MONTH (4)
+#define YEAR (2017)
+#define DAY (14)
 using namespace std;
 
 View::View()
@@ -16,44 +20,50 @@ View::View()
 
 void View::showCalendar(Event **head)
 {
-  int monthToView;
-  int yearToView;
-  while (cout<<"Enter month to view: " && !((cin >> monthToView) && (monthToView > 0) && (monthToView < 13)))
+  int monthToView = MONTH;
+  int yearToView = YEAR;
+  
+  if(TESTMODE == 0)
   {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cout << "Invalid input; please re-enter.\n";
-  }
-  while (cout<<"Enter year to view: " && !((cin >> yearToView) && (yearToView > 1968)))
-  {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cout << "Invalid input; please re-enter.\n";
-  }
-
+    while (cout<<"Enter month to view: " && !((cin >> monthToView) && (monthToView > 0) && (monthToView < 13)))
+    {
+      cin.clear();
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      cout << "Invalid input; please re-enter.\n";
+    }
+    while (cout<<"Enter year to view: " && !((cin >> yearToView) && (yearToView > 1968)))
+    {
+      cin.clear();
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      cout << "Invalid input; please re-enter.\n";
+    }
+  } 
   // Call a new Calendar grid to view the events there.
   Calendar c(monthToView, yearToView);
   c.setFirstDay();
-  c.print(head);
+  c.print(head, monthToView);
+  // Uncomment if testmode == 0.
   cin.ignore();
 }
 
 void View::showDaily(Event **head)
 {
-  int monthToSearch, dayToSearch, yearToSearch;
+  int monthToSearch = MONTH, dayToSearch = DAY, yearToSearch = YEAR;
   char dateSeparator = '/';
 
   // Make a new node to traverse.
   Event * traverse;
   traverse = *head;
-
-  while (cout<<"Enter date to show: " &&
+  if (TESTMODE == 0)
+  {
+    while (cout<<"Enter date to show: " &&
                  !((cin >> monthToSearch >> dateSeparator >> dayToSearch >> dateSeparator >> yearToSearch) &&
                  (monthToSearch > 0) && (monthToSearch < 13)))
-  {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cout << "Invalid input; please re-enter.\n";
+    {
+      cin.clear();
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      cout << "Invalid input; please re-enter.\n";
+    }
   }
 
   // Search and display events with the entered date.
@@ -68,13 +78,14 @@ void View::showDaily(Event **head)
     traverse = traverse->next;
   }
   cout << endl;
+  // Uncomment if testmode == 0.
   cin.ignore();
 }
 
 void View::showMonthly(Event **head)
 {
-  int monthToSearch;
-  int yearToSearch;
+  int monthToSearch = MONTH;
+  int yearToSearch = YEAR;
   char dateSeparator = '/';
 
   // Make a new node to traverse.
@@ -82,13 +93,15 @@ void View::showMonthly(Event **head)
   traverse = *head;
 
   // Search and display events with the same month entered.
-  while (cout<<"Enter month to show: " && !((cin >> monthToSearch >> dateSeparator >> yearToSearch) &&  (monthToSearch > 0) && (monthToSearch < 13)))
+  if(TESTMODE == 0)
   {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cout << "Invalid input; please re-enter.\n";
+    while (cout<<"Enter month to show: " && !((cin >> monthToSearch >> dateSeparator >> yearToSearch) &&  (monthToSearch > 0) && (monthToSearch < 13)))
+    {
+      cin.clear();
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      cout << "Invalid input; please re-enter.\n";
+    }
   }
-
   cout << "Events for: " << monthToSearch << dateSeparator << yearToSearch<< endl;
   while (traverse != NULL)
   {
@@ -100,5 +113,6 @@ void View::showMonthly(Event **head)
     traverse = traverse->next;
   }
   cout << endl;
+  //Uncomment if testmode is == 0.
   cin.ignore();
 }
