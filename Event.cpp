@@ -1,5 +1,14 @@
+/*
+The MyCalendar application prototype
+  The event module below is in change of Event interaction wether from an external file or from the user. The 3 main features present in this module is 
+  event creation, event modification, and event deletion. This includes some error handling features for user input as well as detecting objects
+  that are currently in the list or not in the list at all. The code is not 100% as not covering full path coverage nor is error handling robust to
+  handle all errors
+*/
+
 #include <iostream>
 #include "Event.h"
+#include "Views.h"
 #include <map>
 #include <sstream>
 #include <iomanip>
@@ -13,13 +22,14 @@
 
 using namespace std;
 
-Event::Event()
+Event::Event() 
 {
 
 }
 
-void Event::EventFill(string name_new, string location_new,int month_new, int day_new, int start_hour_new, int start_minute_new,
-                    int meridian_start_new, int year_new, int end_hour_new, int end_minute_new, int meridian_end_new, string new_notes)
+// Fills the new event instance with event attributes
+void Event::EventFill(string name_new, string location_new,int month_new, int day_new, int year_new, int start_hour_new, int start_minute_new,
+                    int meridian_start_new, int end_hour_new, int end_minute_new, int meridian_end_new, string new_notes)
 {
     name = name_new;
 	location = location_new;
@@ -39,7 +49,7 @@ Event::~Event()
 {
 }
 
-void Event::DisplayMeridian(int meridian)
+void Event::DisplayMeridian(int meridian) // displays either am or pm
 {
    switch(meridian){
         case 0 : cout << "am"; break;
@@ -47,22 +57,72 @@ void Event::DisplayMeridian(int meridian)
     }
 }
 
-string Event::GetName()
+string Event::GetName() // gets the event name
 {
     return name;
 }
 
-int Event::GetStartMeridian()
+string Event::GetLocation()// gets event location
 {
-    return time.meridian_start;
+    return location;
 }
 
-int Event::GetEndMeridian()
+int Event::GetDay() // gets event day
 {
-    return time.meridian_end;
+    return date.day;
 }
 
-void Event::CreateEvent(Event **event_head)
+int Event::GetMonth() // gets event month
+{
+    return date.month;
+}
+
+int Event::GetYear() // gets event year
+{
+    return date.year;
+}
+
+int Event::GetStartHour() // gets event start hour
+{
+    return time.start_hour;	
+}
+
+int Event::GetStartMinute() // gets event start minutes
+{
+    return time.start_minute;	
+}
+
+string Event::GetStartMeridian()// get events start meridian
+{
+    if(ReadStartMeridian())
+        return "PM";
+    else
+        return "AM";		
+}
+
+int Event::GetEndHour() // gets events end hour
+{
+    return time.end_hour;	
+}
+
+int Event::GetEndMinute() // gets event end minute
+{
+    return time.end_minute;	
+}
+
+string Event::GetEndMeridian() // gets event end meridian
+{
+    if(ReadEndMeridian())
+        return "PM";
+    else
+        return "AM";		
+}
+string Event::GetNotes() // gets notes
+{
+    return notes;	
+}
+
+void Event::CreateEvent(Event **event_list) // start event creation process
 {
     int meridian_start, meridian_end;
     int month, day, year, start_hour, start_minute, end_hour, end_minute;
@@ -70,18 +130,18 @@ void Event::CreateEvent(Event **event_head)
 	char all_day_char;
     string event_name, event_location, event_notes, smeridian;
 
-    cout << "Enter event name (string): ";
+    cout << "Enter event name (string): "; // new event name
     getline(cin,event_name);
-	
-	cout << "Enter event location (string): ";
+
+	cout << "Enter event location (string): "; // new event location
     getline(cin,event_location);
 
     GetDate(&month, &day, &year); //gets the event date data
-	
+
 	cout << "Is the event all day? (Y - Yes / N - No): ";
 	cin >> all_day_char;
-	
-	if(toupper(all_day_char) == 'Y'){
+
+	if(toupper(all_day_char) == 'Y'){ // handling all day event
 		start_hour = 12;
 		start_minute = 0;
 		meridian_start = 0;
@@ -91,64 +151,68 @@ void Event::CreateEvent(Event **event_head)
 	}
 	else{
 		do{
-			GetStartTime(&start_hour, &start_minute, &meridian_start);
-			GetEndTime(&end_hour, &end_minute, &meridian_end);
-		}while(!EndVsStartTime(start_hour, start_minute, meridian_start, meridian_end, end_hour, end_minute));		
+			GetStartTime(&start_hour, &start_minute, &meridian_start); // new start time
+			GetEndTime(&end_hour, &end_minute, &meridian_end); // new end time
+		}while(!EndVsStartTime(start_hour, start_minute, meridian_start, meridian_end, end_hour, end_minute)); // end time before start time
 	}
 	cin.ignore();
 
-    cout << "Enter event notes (string): ";
+    cout << "Enter event notes (string): "; // gets notes
     getline(cin,event_notes);
 
+	// creates the new completed event
 	Event *temp, *temp2, **temp3;
 	temp = new Event;
-	temp->EventFill(event_name,event_location,month,day,start_hour,start_minute, meridian_start, year,end_hour,end_minute, meridian_end, event_notes);
+	temp->EventFill(event_name,event_location,month,day,year, start_hour,start_minute, meridian_start, end_hour,end_minute, meridian_end, event_notes);
 
-	temp2 = *event_head;
-	temp3 = event_head;
+	temp2 = *event_list;
+	temp3 = event_list;
 
+	// sorts the event list by start time to the minute precision
 	while(EventSort(temp, temp2) != 0){
         temp3 = &temp2->next;
         temp2 = temp2->next;
 	}
     *temp3 = temp;
     temp->next = temp2;
+	
+	cout << endl << "Event successfully created!" << endl << endl;
 }
 
-void Event::GetDate(int * month, int * day, int * year)
+void Event::GetDate(int * month, int * day, int * year) // processess a new date with error handling
 {
 	char date_seperator1 = '/';
     char date_seperator2 = '/';
-	
+
 	while ((cout << "Enter date as day/month/year (ex 1/1/2017): " && !(cin >> *month >> date_seperator1 >> *day >> date_seperator2 >> *year))
-       || date_seperator1 != '/' || date_seperator2 != '/' || (*month <= 0 || *month >= 13 ) || (*year <= 1969 || *year >= 3000) 
-	   || (*day <= 0 || *day >= 32 || (*day == 31 && (*month == 4 || *month == 6 || *month == 9 || *month == 11)) 
+       || date_seperator1 != '/' || date_seperator2 != '/' || (*month <= 0 || *month >= 13 ) || (*year <= 1969 || *year >= 3000)
+	   || (*day <= 0 || *day >= 32 || (*day == 31 && (*month == 4 || *month == 6 || *month == 9 || *month == 11))
 	   || ((*day >= 29 && *month == 2) && (*year%4 != 0) )))
     {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid Date! Please re-enter in Julian date format with forward slashes in between month, day, and year. " << endl;
+        cout << "Invalid Date! Please re-enter in gregorian date format with forward slashes in between month, day, and year. " << endl;
     }
 }
 
-bool Event::ValidDate(int month, int day, int year)
+bool Event::ValidDate(int month, int day, int year) // verifies teh date is correct by itself within expected parameters
 {
     if (month <= 0 || month >= 13 )
         return 0;
     if (year <= 1969 || year >= 3000)
         return 0;
-    if (day <= 0 || day >= 32 || (day == 31 && (month == 4 || month == 6 || month == 9 || month == 11)) || ((day >= 29 && month == 2) && (year%4 != 0) ))
+    if (day <= 0 || day >= 32 || (day == 31 && (month == 4 || month == 6 || month == 9 || month == 11)) || ((day >= 29 && month == 2) && (year%4 != 0 && year%100 != 0) ))
         return 0;
     return 1;
 }
 
-void Event::GetStartTime(int * start_hour, int * start_minute, int * meridian_start)
+void Event::GetStartTime(int * start_hour, int * start_minute, int * meridian_start) // verifiies a valid start time
 {
 	string smeridian;
 	char time_seperator = ':';
-	
+
 	while ((cout << "Enter start time in hour:time (am/pm) (ex 11:59 am): " && !(cin >> *start_hour >> time_seperator >> *start_minute >> smeridian ))
-        || time_seperator != ':' || (*start_hour <= 0 || *start_hour >= 13) || (*start_minute < 0 || *start_minute >= 60) 
+        || time_seperator != ':' || (*start_hour <= 0 || *start_hour >= 13) || (*start_minute < 0 || *start_minute >= 60)
 	    || (smeridian != "am" && smeridian != "AM" && smeridian != "pm" && smeridian != "PM"))
     {
         cin.clear();
@@ -161,13 +225,13 @@ void Event::GetStartTime(int * start_hour, int * start_minute, int * meridian_st
         *meridian_start = 1;
 }
 
-void Event::GetEndTime(int * end_hour, int * end_minute, int * meridian_end)
+void Event::GetEndTime(int * end_hour, int * end_minute, int * meridian_end) // verifies a valid end time
 {
 	string smeridian;
 	char time_seperator = ':';
-	
+
 	while ((cout << "Enter end time in hour:time (am/pm) (ex 11:59 am): " && !(cin >> *end_hour >> time_seperator >> *end_minute >> smeridian ))
-        || time_seperator != ':' || (*end_hour <= 0 || *end_hour >= 13) || (*end_minute < 0 || *end_minute >= 60) 
+        || time_seperator != ':' || (*end_hour <= 0 || *end_hour >= 13) || (*end_minute < 0 || *end_minute >= 60)
 	    || (smeridian != "am" && smeridian != "AM" && smeridian != "pm" && smeridian != "PM"))
     {
         cin.clear();
@@ -180,7 +244,17 @@ void Event::GetEndTime(int * end_hour, int * end_minute, int * meridian_end)
        *meridian_end = 1;
 }
 
-bool Event::ValidTime(int hour, int minute, string meridian)
+int Event::ReadStartMeridian() // returns start meridian
+{
+    return time.meridian_start;
+}
+
+int Event::ReadEndMeridian() // returns end meridian
+{
+    return time.meridian_end;
+}
+
+bool Event::ValidTime(int hour, int minute, string meridian) // flag for valid time
 {
     if (hour <= 0 || hour >= 13)
         return 0;
@@ -191,33 +265,36 @@ bool Event::ValidTime(int hour, int minute, string meridian)
     return 1;
 }
 
-bool Event::EndVsStartTime(int start_hour, int start_minute, int meridian_start, int meridian_end, int end_hour, int end_minute)
+bool Event::EndVsStartTime(int start_hour, int start_minute, int meridian_start, int meridian_end, int end_hour, int end_minute) // verifies start time before end time
 {
-	if (meridian_start == 12)
-		meridian_start = 0;
-	if (meridian_end == 12)
-		meridian_end = 0;
+	if (start_hour == 12)
+		start_hour = 0;
+    if (end_hour == 12)
+		end_hour = 0;
     if (meridian_start * MERIDIAN_MULTIPLIER + start_hour * HOUR_MULTIPLIER + start_minute >=
         meridian_end * MERIDIAN_MULTIPLIER + end_hour * HOUR_MULTIPLIER + end_minute)
+	{
+		cout << "Start time must come before end time, try again!" << endl;
         return 0;
+	}
 
     return 1;
 }
 
-int Event::EventSort(Event * temp, Event * temp2)
+int Event::EventSort(Event * temp, Event * temp2) // sorts through event list by minute precision
 {
-    if(temp2 != NULL && (temp2->date.year * YEAR_MULTIPLIER + temp2->date.month * MONTH_MULTIPLIER + temp2->date.day * DAY_MULTIPLIER + temp2->GetStartMeridian()
-          * MERIDIAN_MULTIPLIER + temp2->time.start_hour * HOUR_MULTIPLIER + temp2->time.start_minute) < (temp->date.year * YEAR_MULTIPLIER + temp->date.month * MONTH_MULTIPLIER +
-          temp->date.day * DAY_MULTIPLIER + temp->GetStartMeridian() * MERIDIAN_MULTIPLIER + temp->time.start_hour * HOUR_MULTIPLIER + temp->time.start_minute))
+    if(temp2 != NULL && (temp2->date.year * YEAR_MULTIPLIER + temp2->date.month * MONTH_MULTIPLIER + temp2->date.day * DAY_MULTIPLIER + temp2->ReadStartMeridian()
+          * MERIDIAN_MULTIPLIER + (temp2->time.start_hour%12) * HOUR_MULTIPLIER + temp2->time.start_minute) < (temp->date.year * YEAR_MULTIPLIER + temp->date.month * MONTH_MULTIPLIER +
+          temp->date.day * DAY_MULTIPLIER + temp->ReadStartMeridian() * MERIDIAN_MULTIPLIER + (temp->time.start_hour%12) * HOUR_MULTIPLIER + temp->time.start_minute))
         return 1;
     else
         return 0;
 }
 
-void Event::ModifyEvent(Event ** event_head)
+void Event::ModifyEvent(Event ** event_list) // modify event process
 {
     Event * traverse;
-    traverse = *event_head;
+    traverse = *event_list;
 
     string event_name, event_location;
     int day, month, year;
@@ -227,23 +304,25 @@ void Event::ModifyEvent(Event ** event_head)
     string eventNotes;
 
     bool found = false;
-	
+
     char eventModChar;
     string userInEventModify;
-	
+
+	// selects event to modify
     cout << "Enter name of the event you wish to modify: ";
     getline(cin, userInEventModify);
-	
+
     istringstream in_string(userInEventModify);
     in_string >> eventModChar;
 	cout << endl;
-	
+
 
     cout << endl;
     while (traverse != NULL){
-	    if(traverse->GetName() == userInEventModify){
+	    if(traverse->GetName() == userInEventModify){ // traverses until event is found and modify the selected attributes
             found = true;
             traverse->ShowEventFullDetails();
+			cout << endl;
 
             cout << "N  -- event name" << endl;
 			cout << "L  -- event location" << endl;
@@ -252,12 +331,12 @@ void Event::ModifyEvent(Event ** event_head)
             cout << "W  -- event notes" << endl;
             cout << "X  -- go back to menu" << endl;
             cout << "What would you like to change: " << endl;
-			
-			if(*event_head == NULL){
+
+			if(*event_list == NULL){
 				cout << "There are no events no modify!" << endl;
-			    return;	
+			    return;
 			}
-			
+
             getline(cin, userInEventModify);
 			istringstream in_string(userInEventModify);
             in_string >> eventModChar;
@@ -276,7 +355,7 @@ void Event::ModifyEvent(Event ** event_head)
 				    break;
 				}
 				case 'D':{
-					
+
 					GetDate(&month, &day, &year); //gets the event date data
 					traverse->date.year = year;
 					traverse->date.month = month;
@@ -298,7 +377,7 @@ void Event::ModifyEvent(Event ** event_head)
 				}
 				case 'W':{
 					cout << "Enter event notes (string): ";
-					cin.ignore();
+					//cin.ignore();
 					getline(cin,eventNotes);
 					traverse->notes = eventNotes;
 					break;
@@ -320,14 +399,14 @@ void Event::ModifyEvent(Event ** event_head)
 	if (!found)
         cout << "Event does not exit!" << endl;
 
-	ReOrderEvents(event_head);
-    cout << endl << "Event Modified!" << endl << endl;
+	ReOrderEvents(event_list);
+    cout << endl << "Event successfully modified!" << endl << endl;
 }
 
-void Event::ReOrderEvents(Event **event_head)
+void Event::ReOrderEvents(Event **event_list) // reorders the event list
 {
-    Event *temp = *event_head;
-    *event_head = NULL;
+    Event *temp = *event_list;
+    *event_list = NULL;
 
     while (temp)
     {
@@ -348,23 +427,23 @@ void Event::ReOrderEvents(Event **event_head)
                 rhs = &(*rhs)->next;
             }
         }
-        *rhs = *event_head;
+        *rhs = *event_list;
 
         if (swapped){
-            *event_head = *lhs;
+            *event_list = *lhs;
             *lhs = NULL;
         }
-        else{ 
-            *event_head = temp;
+        else{
+            *event_list = temp;
             break;
         }
-    }	
+    }
 }
 
-void Event::RemoveEvent(Event **event_head)
+void Event::RemoveEvent(Event **event_list) // removes the event from the list and frees the memory
 {
     Event *current;
-    current = *event_head;
+    current = *event_list;
 
     string eventName;
 
@@ -379,7 +458,7 @@ void Event::RemoveEvent(Event **event_head)
     if (current->name == eventName)
     {
         cout << "Deleting event: " << eventName << endl << endl;
-        *event_head = (*event_head)->next;
+        *event_list = (*event_list)->next;
         return;
     }
 
@@ -396,13 +475,13 @@ void Event::RemoveEvent(Event **event_head)
         current = current->next;
     }
 
-    cout << "Not found\n" << endl;
+    cout << endl << "Event successfully modified!" << endl << endl;
 }
 
-void Event::Traverse(Event **event_head)
+void Event::Traverse(Event **event_list) // traverses from the linked list
 {
     Event * traverse;
-    traverse = *event_head;
+    traverse = *event_list;
 
 	cout << "List View:" << endl << endl;
 	cout << "---------------------" << endl;
@@ -415,24 +494,24 @@ void Event::Traverse(Event **event_head)
 	}
 }
 
-void Event::ClearList(Event ** event_head)
+void Event::ClearList(Event ** event_list) // deletes the whole list and frees up memory
 {
-	Event *current = *event_head;
-    
+	Event *current = *event_list;
+
     while (current != NULL) {
-        *event_head = (*event_head)->next;
+        *event_list = (*event_list)->next;
         delete current;
-        current = *event_head;
+        current = *event_list;
     }
-    *event_head = NULL;
+    *event_list = NULL;
 }
 
-void Event::DisplayEventFull(Event **event_head)
+void Event::DisplayEventFull(Event **event_list) // display all event details for selected event
 {
     bool found = false;
     string user;
     Event * traverse;
-    traverse = *event_head;
+    traverse = *event_list;
 
     cout << "Enter event name to display event details: ";
     cin >> user;
@@ -495,75 +574,70 @@ void Event::ShowEventListDetails() //displays the event
     cout << endl;
 }
 
-void Event::ShowEventMenu()
+void Event::ShowEventMenu() // event menu options
 {
 	cout << endl;
     cout << "Select an action:" << endl;
     cout << "C - Create an event" << endl;
-    cout << "M - userInEventModify an event" << endl;
+    cout << "M - Modify an event" << endl;
     cout << "R - Remove an event" << endl;
     cout << "L - Display events of list" << endl;
     cout << "S - Search for event" << endl;
-    cout << "X - Exit" << endl << endl;
+    cout << "X - Return to main menu" << endl << endl;
 }
 
-void Event::MainEventMenu()
+void Event::EventMenu(Event ** event_list) // event menu
 {
-    Event *event_head;
-    event_head = NULL;
-
-    string menu_input;
-	char menu_char;
-
-	cout << "------------------------------------------------------------------------------------------" << endl;
-    ShowEventMenu();
-	cout << "Menu Selection: ";
-    getline(cin, menu_input);
-    istringstream in_string(menu_input);
-    in_string >> menu_char;
-	cout << endl;
+	string event_menu_input;
+	char event_menu_char;
 	
-    while(toupper(menu_char) != 'X' )
+	cout << "------------------------------------------------" << endl;
+    ShowEventMenu();
+	cout << "Event Menu Selection: ";
+    getline(cin, event_menu_input);
+    istringstream in_string(event_menu_input);
+    in_string >> event_menu_char;
+	cout << endl;
+
+    while(toupper(event_menu_char) != 'X' )
     {
-		switch(toupper(menu_char))
+		switch(toupper(event_menu_char))
 		{
-			case 'C':{
-				CreateEvent(&event_head);
+			case 'C':{ // create an event
+				CreateEvent(event_list);
 				break;
 			}
-			case 'M':{
-				ModifyEvent(&event_head);
+			case 'M':{ // modify an event
+				ModifyEvent(event_list);
 				break;
 			}
-			case 'R':{
-				RemoveEvent(&event_head);
+			case 'R':{ // remove an event
+				RemoveEvent(event_list);
 				break;
 			}
-			case 'L':{
-			    Traverse(&event_head);
+			case 'L':{ // traverse an event
+			    Traverse(event_list);
 				break;
 			}
-			case 'S':{
-				DisplayEventFull(&event_head);
+			case 'S':{ // display event details
+				DisplayEventFull(event_list);
 				break;
 			}
-			case 'X':
-			    break;
-			default:{
-				cout << "Invalid input, try again!" << endl;
+			case 'X':{ // exits
+				break;
+			}
+			default:{ // invalid input
+			    cout << "Invalid Output, Try again!" << endl;
 				break;
 			}
 		}
-		cout << "------------------------------------------------------------------------------------------" << endl;
+		
+		cout << "------------------------------------------------" << endl;
 		ShowEventMenu();
-		cout << "Menu Selection: ";
-        getline(cin, menu_input);
-        istringstream in_string(menu_input);
-        in_string >> menu_char;
+		cout << "Event Menu Selection: ";
+        getline(cin, event_menu_input);
+        istringstream in_string(event_menu_input);
+        in_string >> event_menu_char;
 		cout << endl;
-    }
-	ClearList(&event_head);
+	}
 }
-
-
-

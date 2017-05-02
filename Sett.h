@@ -1,5 +1,10 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+/*
+  Settings Module
+  Major features of this module includes changing the default view and text color
+*/
+
+#ifndef SETT_H
+#define SETT_H
 
 #include<iostream>
 #include<cstring>
@@ -11,9 +16,9 @@ class Settings
     public:
         Settings();
         ~Settings();
+	    void ShowSettingsMenu();    //Display view menu
+	    void SettingsMenu();        //Main View menu selection
         void changeDefaultView();   //change the default view
-        void changeRemTimeLength(); //changes time
-        void changeMenuLoc();       //changes menu location
         void changeTextColor();     //changes text color
         void changeMonth();         //change the month
         void whatChange();          //does the change
@@ -23,11 +28,10 @@ class Settings
     protected:
 
     private:
-        int defaultView; //change to enum
-        int reminderTimeLength;
-        bool menuLocation;
+        int defaultView; // signals default view
         int textColor; //type still unknown
-        int currentMonthDisplayed;
+        int currentMonthDisplayed; // current month
 };
 
 #endif // SETTINGS_H
+//
